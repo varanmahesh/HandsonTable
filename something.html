@@ -1,0 +1,134 @@
+<html>
+
+<head>
+    <link type="text/css" rel="stylesheet" href="dist/handsontable.full.css">
+</head>
+
+<body>
+    <div>
+        <div id="example1" class="hot handsontable htRowHeaders htColumnHeaders"></div>
+    </div>
+    <br>
+    <button id="export-string" class="intext-btn">
+        Export as a String
+    </button>
+    <button id="export-string-range" class="intext-btn">
+        Export as a String with a specified range
+    </button>
+    <button id="export-blob" class="intext-btn">
+        Export as a blob
+    </button>
+    <button id="export-file" class="intext-btn">
+        Export as a file
+    </button>
+    <input type="file" id="csv-file" name="files" accept=".csv">
+
+    <p class="head-gap">
+        Result
+        <small>(Also displayed in the browser console)</small>:
+    </p>
+    <textarea id="result" style="height: 100px; min-width: 400px;font-size: 0.813em;border: 1px solid #C5C5C5;"></textarea>
+    <script src="dist/handsontable.full.js"></script>
+    <script src="PapaParse/papaparse.js"></script>
+    <script src="jquery.js"></script>
+    <script>
+        var data;
+
+        function handleFileSelect(evt) {
+            var file = evt.target.files[0];
+
+            Papa.parse(file, {
+                header: true,
+                dynamicTyping: true,
+                complete: function (results) {
+
+                    var headers = (Object.keys(results.data[0]));
+                    console.log(headers);
+                    var rows = results.data.length;
+                    var columns = Object.keys(results.data[0]).length;
+                    console.log(rows + 1);
+                    console.log(columns);
+                    var content;
+                    // for (j = 0; j < results.data.length; j++) {
+                    //         content1 = (Object.values(results.data[j]));
+                    //          console.log(content1)
+                    // }
+                        // content2 = (Object.values(results.data[1]));
+                        for (i = 0; i < rows; i++) {
+                            var j = 0;
+                                for (var key in results.data[i]) {
+                                    if (results.data[i].hasOwnProperty(key)) {
+                                        var element = results.data[i][key];
+                                        hot.setDataAtCell(i+1, j, element);
+                                        hot.setDataAtCell(0, j, headers[j]);
+                                        
+                                    }
+                                    j++;
+                                }
+                            // for (m = 0; m < columns; m++) {
+                                
+                            // }
+                        }
+                    
+
+
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            $("#csv-file").change(handleFileSelect);
+        });
+        var example1 = document.getElementById('example1');
+
+        var hot = new Handsontable(example1, {
+            data: data,
+            minSpareRows: 3,
+            minSpareCols: 7,
+            colHeaders: true,
+            rowHeaders: true,
+
+        });
+
+        var buttons = {
+            string: document.getElementById('export-string'),
+            stringRange: document.getElementById('export-string-range'),
+            blob: document.getElementById('export-blob'),
+            file: document.getElementById('export-file')
+        };
+
+        var exportPlugin = hot.getPlugin('exportFile');
+        var resultTextarea = document.getElementById('result');
+
+        buttons.string.addEventListener('click', function () {
+            resultTextarea.value = exportPlugin.exportAsString('csv');
+            console.log(resultTextarea.value);
+        });
+
+        buttons.stringRange.addEventListener('click', function () {
+            resultTextarea.value = exportPlugin.exportAsString('csv', {
+                exportHiddenRows: true,     // default false, exports the hidden rows
+                exportHiddenColumns: true,  // default false, exports the hidden columns
+                columnHeaders: true,        // default false, exports the column headers
+                rowHeaders: true,           // default false, exports the row headers
+                columnDelimiter: ';',       // default ',', the data delimiter
+                range: [1, 1, 3, 3]         // data range in format: [startRow, startColumn, endRow, endColumn]
+            });
+            console.log(resultTextarea.value);
+        });
+
+        buttons.blob.addEventListener('click', function () {
+            var blob = exportPlugin.exportAsBlob('csv');
+            resultTextarea.value = blob;
+            console.log(blob);
+        });
+
+        buttons.file.addEventListener('click', function () {
+            exportPlugin.downloadFile('csv', { filename: 'MyFile' });
+        });
+    </script>
+
+    </script>
+</body>
+
+</html>
